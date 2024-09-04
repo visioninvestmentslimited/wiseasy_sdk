@@ -1,6 +1,8 @@
 # Wiseasy Sdk
 
-Flutter plugin to communicate with Wiseasy devices
+![wiseasy](https://github.com/user-attachments/assets/09ec3e85-7aa8-46c5-a9b5-4d483892d056)
+
+Unofficial Flutter plugin to communicate with Wiseasy devices
 
 ## Getting Started
 
