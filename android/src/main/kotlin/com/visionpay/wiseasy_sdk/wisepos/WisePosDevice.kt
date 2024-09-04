@@ -1,5 +1,6 @@
 package com.visionpay.wiseasy_sdk.wisepos
 
+import android.util.Log
 import com.visionpay.wiseasy_sdk.WisePosDeviceChannel
 import com.wisepos.smartpos.device.Device
 
@@ -14,8 +15,14 @@ class WisePosDevice(private val device: Device) : WisePosDeviceChannel {
     }
 
     override fun getTamperStatus(): Map<String, Long> {
-        return device.tamperStatus.mapValues {
-            return mapOf(it.key to it.key.toLong())
+        return device.tamperStatus.mapValues { entry ->
+            try {
+                val value = entry.value
+                return@mapValues value.toString().toLongOrNull() ?: -1L
+            } catch (e: Exception) {
+                Log.e("GetTamperStatus", e.toString())
+                return@mapValues -1L
+            }
         }
     }
 

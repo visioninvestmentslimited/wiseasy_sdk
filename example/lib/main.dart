@@ -1,6 +1,5 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wiseasy_sdk/wiseasy_sdk.dart';
 
 void main() {
@@ -22,6 +21,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  List<String> logs = [];
+
   @override
   void initState() {
     initialize();
@@ -30,7 +31,16 @@ class _MyAppState extends State<MyApp> {
 
   void initialize() async {
     await WisePosSdk.initialize();
-    print("Initialized");
+    addLogs("Initialized Sdk");
+  }
+
+  void addLogs(log) {
+    if (log is PlatformException) {
+      logs.add(log.message?.toString() ?? log.toString());
+    } else {
+      logs.add(log.toString());
+    }
+    setState(() {});
   }
 
   @override
@@ -46,15 +56,23 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await WisePosSdk.printer.printSample();
+                  try {
+                    await WisePosSdk.printer.printSample();
+                  } catch (e) {
+                    addLogs(e);
+                  }
                 },
                 child: const Text("Print Sample"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await WisePosSdk.printer.startPrinting({});
+                  try {
+                    addLogs(await WisePosSdk.printer.getPrinterStatus());
+                  } catch (e) {
+                    addLogs(e);
+                  }
                 },
-                child: const Text("Start Printing"),
+                child: const Text("GetPrinterStatus"),
               )
             ],
           ),
@@ -63,28 +81,23 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await WisePosSdk.printer.addSingleText(
-                    PrinterTextInfo(
-                      text: "Single Text",
-                      align: 1,
-                      fontSize: 24,
-                      width: -1,
-                      columnSpacing: -1,
-                      isBold: false,
-                      isItalic: false,
-                      isWithUnderline: false,
-                      isReverseText: false,
-                    ),
-                  );
+                  try {
+                    addLogs(await WisePosSdk.printer.getPrinterMileage());
+                  } catch (e) {
+                    addLogs(e);
+                  }
                 },
-                child: const Text("Add Single Text"),
+                child: const Text("GetPrinterMileage"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await WisePosSdk.printer.initialize();
-                  print("Initialize: ");
+                  try {
+                    await WisePosSdk.printer.clearPrinterMileage();
+                  } catch (e) {
+                    addLogs(e);
+                  }
                 },
-                child: const Text("Initialize"),
+                child: const Text("ClearPrinterMileage"),
               )
             ],
           ),
@@ -94,13 +107,13 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  print(await WisePosSdk.device.getVersionInfo());
+                  addLogs(await WisePosSdk.device.getVersionInfo());
                 },
                 child: const Text("DeviceVersion"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  print(await WisePosSdk.device.getKernelVersion());
+                  addLogs(await WisePosSdk.device.getKernelVersion());
                 },
                 child: const Text("KernelVersion"),
               )
@@ -111,18 +124,27 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  print(await WisePosSdk.device.getDeviceSn());
+                  addLogs(await WisePosSdk.device.getDeviceSn());
                 },
                 child: const Text("DeviceSn"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  print(await WisePosSdk.device.getTamperStatus());
+                  addLogs(await WisePosSdk.device.getTamperStatus());
                 },
                 child: const Text("TamperStatus"),
               )
             ],
           ),
+          const Divider(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: logs.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Text(logs[index]);
+              },
+            ),
+          )
         ],
       ),
     );

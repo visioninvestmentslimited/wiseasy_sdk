@@ -14,8 +14,8 @@ After you are all setup you need to add the SDKs `\*.aar`` file to your Android 
 
 ```groovy
 configurations.maybeCreate("default")
-artifacts.add("default", file('WiseSdk_D_1.08_00a_24031101.aar'))
-artifacts.add("default", file('WiseSdk_P_1.28_00a_24040301.aar'))
+artifacts.add("default", file('WiseSdk_D_XXXX.aar'))
+artifacts.add("default", file('WiseSdk_P_XXXX.aar'))
 ```
 
 4. In the android root folder find `settings.gradle` file, open it and add the following line at the top of the file:

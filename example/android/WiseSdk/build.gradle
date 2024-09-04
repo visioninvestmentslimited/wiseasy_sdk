@@ -1,3 +1,3 @@
 configurations.maybeCreate("default")
-artifacts.add("default", file('WiseSdk_D_1.08_00a_24031101.aar')) 
-artifacts.add("default", file('WiseSdk_P_1.28_00a_24040301.aar')) 
+artifacts.add("default", file('WiseSdk_D_1.09_00a_24032501.aar')) 
+artifacts.add("default", file('WiseSdk_P_1.29_00a_24041501.aar')) 
