@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.0")
+        classpath("com.android.tools.build:gradle:7.3.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
@@ -51,10 +51,8 @@ android {
 
     dependencies {
         testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.mockito:mockito-core:5.0.0")
-        implementation files('libs\\SDK4BaseBinderV2.2.12.jar')
-        implementation files('libs\\SDK4EmvBinderV2.2.0.jar')
-        implementation files('libs\\SDK4KeyManagerBinderV2.2.0.jar')
+        testImplementation("org.mockito:mockito-core:5.1.0")
+        implementation project(':WiseSdk')
     }
 
     testOptions {

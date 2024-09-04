@@ -15,11 +15,77 @@ PlatformException _createConnectionError(String channelName) {
   );
 }
 
-/// Native -> Flutter
 enum PrinterAlign {
   left,
   center,
   right,
+}
+
+enum BarcodeType {
+  barcode_128,
+  pdf_417,
+  barcode_39,
+}
+
+class PrinterTextInfo {
+  PrinterTextInfo({
+    required this.text,
+    required this.align,
+    required this.fontSize,
+    required this.width,
+    required this.columnSpacing,
+    required this.isBold,
+    required this.isItalic,
+    required this.isWithUnderline,
+    required this.isReverseText,
+  });
+
+  String text;
+
+  int align;
+
+  int fontSize;
+
+  int width;
+
+  int columnSpacing;
+
+  bool isBold;
+
+  bool isItalic;
+
+  bool isWithUnderline;
+
+  bool isReverseText;
+
+  Object encode() {
+    return <Object?>[
+      text,
+      align,
+      fontSize,
+      width,
+      columnSpacing,
+      isBold,
+      isItalic,
+      isWithUnderline,
+      isReverseText,
+    ];
+  }
+
+  static PrinterTextInfo decode(Object result) {
+    result as List<Object?>;
+    return PrinterTextInfo(
+      text: result[0]! as String,
+      align: result[1]! as int,
+      fontSize: result[2]! as int,
+      width: result[3]! as int,
+      columnSpacing: result[4]! as int,
+      isBold: result[5]! as bool,
+      isItalic: result[6]! as bool,
+      isWithUnderline: result[7]! as bool,
+      isReverseText: result[8]! as bool,
+    );
+  }
 }
 
 
@@ -33,6 +99,12 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is PrinterAlign) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
+    }    else if (value is BarcodeType) {
+      buffer.putUint8(130);
+      writeValue(buffer, value.index);
+    }    else if (value is PrinterTextInfo) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -44,18 +116,22 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         final int? value = readValue(buffer) as int?;
         return value == null ? null : PrinterAlign.values[value];
+      case 130: 
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : BarcodeType.values[value];
+      case 131: 
+        return PrinterTextInfo.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
   }
 }
 
-/// Flutter -> Native
-class WiseasyPlatformChannel {
-  /// Constructor for [WiseasyPlatformChannel].  The [binaryMessenger] named argument is
+class WisePosChannel {
+  /// Constructor for [WisePosChannel].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  WiseasyPlatformChannel({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  WisePosChannel({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
         pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
@@ -64,8 +140,8 @@ class WiseasyPlatformChannel {
 
   final String pigeonVar_messageChannelSuffix;
 
-  Future<int?> initialize() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.initialize$pigeonVar_messageChannelSuffix';
+  Future<void> initialize() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosChannel.initialize$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -82,12 +158,27 @@ class WiseasyPlatformChannel {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as int?);
+      return;
     }
   }
+}
 
-  Future<void> dispose() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.dispose$pigeonVar_messageChannelSuffix';
+/// Printer Implementation
+class WisePosPrinterChannel {
+  /// Constructor for [WisePosPrinterChannel].  The [binaryMessenger] named argument is
+  /// available for dependency injection.  If it is left null, the default
+  /// BinaryMessenger will be used which routes to the host platform.
+  WisePosPrinterChannel({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  final BinaryMessenger? pigeonVar_binaryMessenger;
+
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  final String pigeonVar_messageChannelSuffix;
+
+  Future<void> initialize() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.initialize$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -108,8 +199,30 @@ class WiseasyPlatformChannel {
     }
   }
 
-  Future<int?> printSample() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.printSample$pigeonVar_messageChannelSuffix';
+  Future<void> startPrinting(Map<String?, Object?> options) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.startPrinting$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[options]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> printSample() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.printSample$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -126,19 +239,19 @@ class WiseasyPlatformChannel {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as int?);
+      return;
     }
   }
 
-  Future<int?> paperFeed(int distance) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.paperFeed$pigeonVar_messageChannelSuffix';
+  Future<void> addSingleText(PrinterTextInfo textInfo) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.addSingleText$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[distance]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[textInfo]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -148,19 +261,19 @@ class WiseasyPlatformChannel {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as int?);
+      return;
     }
   }
 
-  Future<int?> printLine(String text, int fontSize, PrinterAlign align, bool bold, bool italic) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.printLine$pigeonVar_messageChannelSuffix';
+  Future<void> addMultiText(List<PrinterTextInfo?> textInfoList) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.addMultiText$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[text, fontSize, align, bold, italic]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[textInfoList]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -170,12 +283,225 @@ class WiseasyPlatformChannel {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as int?);
+      return;
     }
   }
 
-  Future<int?> stopPrint() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WiseasyPlatformChannel.stopPrint$pigeonVar_messageChannelSuffix';
+  Future<void> addPicture(PrinterAlign align, Uint8List image) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.addPicture$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[align, image]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> addBarCode(BarcodeType type, int width, int height, String barcode) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.addBarCode$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[type, width, height, barcode]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> addQrCode(int width, int height, String qrCode) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.addQrCode$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[width, height, qrCode]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> setLineSpacing(int spacing) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.setLineSpacing$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[spacing]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> feedPaper(int dots) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.feedPaper$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[dots]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<Map<String?, Object?>> getPrinterStatus() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.getPrinterStatus$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Map<Object?, Object?>?)!.cast<String?, Object?>();
+    }
+  }
+
+  Future<int> setGrayLevel(int level) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.setGrayLevel$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[level]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as int?)!;
+    }
+  }
+
+  Future<void> setPrintFont(Map<String?, Object?> data) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.setPrintFont$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[data]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<double> getPrinterMileage() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.getPrinterMileage$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as double?)!;
+    }
+  }
+
+  Future<void> clearPrinterMileage() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.clearPrinterMileage$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -192,7 +518,130 @@ class WiseasyPlatformChannel {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as int?);
+      return;
+    }
+  }
+}
+
+/// Device Implementation
+class WisePosDeviceChannel {
+  /// Constructor for [WisePosDeviceChannel].  The [binaryMessenger] named argument is
+  /// available for dependency injection.  If it is left null, the default
+  /// BinaryMessenger will be used which routes to the host platform.
+  WisePosDeviceChannel({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  final BinaryMessenger? pigeonVar_binaryMessenger;
+
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  final String pigeonVar_messageChannelSuffix;
+
+  Future<Map<String?, String?>> getVersionInfo() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosDeviceChannel.getVersionInfo$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Map<Object?, Object?>?)!.cast<String?, String?>();
+    }
+  }
+
+  Future<Map<String?, String?>> getKernelVersion() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosDeviceChannel.getKernelVersion$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Map<Object?, Object?>?)!.cast<String?, String?>();
+    }
+  }
+
+  Future<Map<String?, int?>> getTamperStatus() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosDeviceChannel.getTamperStatus$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Map<Object?, Object?>?)!.cast<String?, int?>();
+    }
+  }
+
+  Future<String> getDeviceSn() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosDeviceChannel.getDeviceSn$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as String?)!;
     }
   }
 }

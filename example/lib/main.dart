@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:wiseasy_sdk/wiseasy_sdk.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -27,8 +29,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void initialize() async {
-    int? result = await WiseasySdk.initialize();
-    print("Initialize: $result");
+    await WisePosSdk.initialize();
+    print("Initialized");
   }
 
   @override
@@ -44,17 +46,15 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  int? result = await WiseasySdk.printSample();
-                  print("Print Sample: $result");
+                  await WisePosSdk.printer.printSample();
                 },
                 child: const Text("Print Sample"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  int? result = await WiseasySdk.stopPrint();
-                  print("Stop Print: $result");
+                  await WisePosSdk.printer.startPrinting({});
                 },
-                child: const Text("Stop Print"),
+                child: const Text("Start Printing"),
               )
             ],
           ),
@@ -63,26 +63,66 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  int? result = await WiseasySdk.paperFeed(2);
-                  print("Paper Feed: $result");
+                  await WisePosSdk.printer.addSingleText(
+                    PrinterTextInfo(
+                      text: "Single Text",
+                      align: 1,
+                      fontSize: 24,
+                      width: -1,
+                      columnSpacing: -1,
+                      isBold: false,
+                      isItalic: false,
+                      isWithUnderline: false,
+                      isReverseText: false,
+                    ),
+                  );
                 },
-                child: const Text("Paper Feed"),
+                child: const Text("Add Single Text"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  int? result = await WiseasySdk.printLine(
-                    text: "Test",
-                    fontSize: 1,
-                    align: PrinterAlign.center,
-                    bold: true,
-                    italic: true,
-                  );
-                  print("Print Line: $result");
+                  await WisePosSdk.printer.initialize();
+                  print("Initialize: ");
                 },
-                child: const Text("Print Line"),
+                child: const Text("Initialize"),
               )
             ],
-          )
+          ),
+          const Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  print(await WisePosSdk.device.getVersionInfo());
+                },
+                child: const Text("DeviceVersion"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  print(await WisePosSdk.device.getKernelVersion());
+                },
+                child: const Text("KernelVersion"),
+              )
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  print(await WisePosSdk.device.getDeviceSn());
+                },
+                child: const Text("DeviceSn"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  print(await WisePosSdk.device.getTamperStatus());
+                },
+                child: const Text("TamperStatus"),
+              )
+            ],
+          ),
         ],
       ),
     );
