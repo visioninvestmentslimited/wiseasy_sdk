@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wiseasy_sdk/wiseasy_sdk.dart';
@@ -22,6 +24,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<String> logs = [];
+  late WisePosPrinter printer;
 
   @override
   void initState() {
@@ -32,6 +35,7 @@ class _MyAppState extends State<MyApp> {
   void initialize() async {
     await WisePosSdk.initialize();
     addLogs("Initialized Sdk");
+    printer = WisePosSdk.printer;
   }
 
   void addLogs(log) {
@@ -41,6 +45,78 @@ class _MyAppState extends State<MyApp> {
       logs.add(log.toString());
     }
     setState(() {});
+  }
+
+  Future<void> printSample() async {
+    // Initializing the printer.
+    await printer.initialize();
+
+    // Set the printer gray value.
+    await printer.setGrayLevel(2);
+
+    // Gets the current status of the printer
+    Map<String, dynamic> status = await printer.getPrinterStatus();
+    print("Status: $status");
+
+    // Gets whether the printer is out of paper from the map file.
+    if (status["paper"] == 1) {
+      throw Exception("Printer does not have paper");
+    }
+
+    // When printing text information, the program needs to set the printing font. The current setting is the default font.
+    await printer.setPrintFont({'font': 'DEFAULT'});
+
+    // Add Image from assets
+    await printer.addAsset(asset: 'assets/discount_img.png');
+
+    var textInfo = TextInfo(
+      text: "www.test.com",
+      align: PrinterAlign.center,
+      fontSize: 32,
+    );
+    await printer.setLineSpacing(1);
+    await printer.addSingleText(textInfo);
+
+    textInfo = textInfo.copyWith(
+      text: "--------------------------------------------",
+      align: PrinterAlign.center,
+    );
+    await printer.addSingleText(textInfo);
+
+    textInfo.align = PrinterAlign.left;
+    textInfo.text = "Meal Package:KFC \$100 coupons";
+    await printer.addSingleText(textInfo);
+
+    textInfo.text = "Selling Price:\$90";
+    await printer.addSingleText(textInfo);
+
+    textInfo.text = "Merchant Name:KFC";
+    await printer.addSingleText(textInfo);
+
+    textInfo.text = "Payment Time:17/3/29 9:27";
+    await printer.addSingleText(textInfo);
+
+    textInfo.align = PrinterAlign.center;
+    textInfo.text = "--------------------------------------------";
+    await printer.addSingleText(textInfo);
+
+    // Barcode Test
+    await printer.addBarCode(barcode: "abcd");
+    textInfo.text = "--------------------------------------------";
+    await printer.addSingleText(textInfo);
+
+    // QrCode
+    await printer.addQrCode(qrCode: "abcd");
+    textInfo.text = "--------------------------------------------";
+    await printer.addSingleText(textInfo);
+
+    textInfo.text = "Thanks For Using";
+    await printer.addSingleText(textInfo);
+
+    print("Starting print");
+    await printer.startPrinting();
+    await printer.feedPaper(30);
+    print("Printing completed");
   }
 
   @override
@@ -57,12 +133,12 @@ class _MyAppState extends State<MyApp> {
               ElevatedButton(
                 onPressed: () async {
                   try {
-                    await WisePosSdk.printer.printSample();
+                    await printSample();
                   } catch (e) {
                     addLogs(e);
                   }
                 },
-                child: const Text("Print Sample"),
+                child: const Text("PrintSample"),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -72,8 +148,8 @@ class _MyAppState extends State<MyApp> {
                     addLogs(e);
                   }
                 },
-                child: const Text("GetPrinterStatus"),
-              )
+                child: const Text("Printer Status"),
+              ),
             ],
           ),
           Row(

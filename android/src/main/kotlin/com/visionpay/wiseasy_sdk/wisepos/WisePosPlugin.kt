@@ -15,12 +15,15 @@ private const val TAG = "WisePosPlugin"
 
 class WisePosPlugin(private val context: Context) : WisePosChannel {
     private lateinit var wisePosSdk: WisePosSdk
+    private lateinit var binaryMessenger: BinaryMessenger
 
     fun setup(binaryMessenger: BinaryMessenger) {
         WisePosChannel.setUp(binaryMessenger, this)
-
         wisePosSdk = WisePosSdk.getInstance()
-        // Setup all interfaces
+        this.binaryMessenger = binaryMessenger
+    }
+
+    fun setupInterfaces() {
         WisePosPrinterChannel.setUp(binaryMessenger, WisePosPrinter(wisePosSdk.printer))
         WisePosDeviceChannel.setUp(binaryMessenger, WisePosDevice(wisePosSdk.device))
     }
@@ -28,15 +31,8 @@ class WisePosPlugin(private val context: Context) : WisePosChannel {
     override fun initialize(callback: (Result<Unit>) -> Unit) {
         wisePosSdk.initPosSdk(context, object : InitPosSdkListener {
             override fun onInitPosSuccess() {
+                setupInterfaces()
                 callback(Result.success(Unit))
-
-                try {
-                    val ping = WisePosSdk.getServiceManager().printer.pingBinder()
-                    Log.e("Test", "Ping: $ping")
-                } catch (e: Exception) {
-                    Log.e("Test", "Ping: $e")
-
-                }
             }
 
             override fun onInitPosFail(errorCode: Int) {
@@ -50,14 +46,6 @@ class WisePosPlugin(private val context: Context) : WisePosChannel {
                 )
             }
         })
-//        WiseDeviceSdk.getInstance().initDeviceSdk(context, object : IInitDeviceSdkListener {
-//            override fun onInitPosSuccess() {
-//                Log.d(TAG, "DeviceSDK initialized")
-//            }
-//            override fun onInitPosFail(errorCode: Int) {
-//                Log.d(TAG, "DeviceSDK Failed : $errorCode")
-//            }
-//        })
     }
 
 }

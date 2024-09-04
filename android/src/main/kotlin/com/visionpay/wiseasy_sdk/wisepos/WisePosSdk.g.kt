@@ -71,7 +71,7 @@ enum class BarcodeType(val raw: Int) {
 /** Generated class from Pigeon that represents data sent in messages. */
 data class PrinterTextInfo (
   val text: String,
-  val align: Long,
+  val align: PrinterAlign,
   val fontSize: Long,
   val width: Long,
   val columnSpacing: Long,
@@ -84,7 +84,7 @@ data class PrinterTextInfo (
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): PrinterTextInfo {
       val text = pigeonVar_list[0] as String
-      val align = pigeonVar_list[1] as Long
+      val align = pigeonVar_list[1] as PrinterAlign
       val fontSize = pigeonVar_list[2] as Long
       val width = pigeonVar_list[3] as Long
       val columnSpacing = pigeonVar_list[4] as Long
@@ -200,7 +200,7 @@ interface WisePosPrinterChannel {
   fun setLineSpacing(spacing: Long)
   fun feedPaper(dots: Long)
   fun getPrinterStatus(): Map<String, Any>
-  fun setGrayLevel(level: Long): Long
+  fun setGrayLevel(level: Long)
   fun setPrintFont(data: Map<String, Any>)
   fun getPrinterMileage(): Double
   fun clearPrinterMileage()
@@ -419,7 +419,8 @@ interface WisePosPrinterChannel {
             val args = message as List<Any?>
             val levelArg = args[0] as Long
             val wrapped: List<Any?> = try {
-              listOf(api.setGrayLevel(levelArg))
+              api.setGrayLevel(levelArg)
+              listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)
             }

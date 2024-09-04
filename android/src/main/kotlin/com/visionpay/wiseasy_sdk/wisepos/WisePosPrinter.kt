@@ -10,6 +10,7 @@ import com.visionpay.wiseasy_sdk.PrinterAlign
 import com.visionpay.wiseasy_sdk.PrinterTextInfo
 import com.visionpay.wiseasy_sdk.WisePosPrinterChannel
 import com.wisepos.smartpos.WisePosException
+import com.wisepos.smartpos.WisePosSdk
 import com.wisepos.smartpos.errorcode.WisePosErrorCode
 import com.wisepos.smartpos.printer.Align
 import com.wisepos.smartpos.printer.Printer
@@ -27,7 +28,6 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
                 result.toString(),
                 "Failed to initialize Printer: $result"
             )
-
         }
     }
 
@@ -35,25 +35,18 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
         try {
             var ret: Int = printer.initPrinter() //Initializing the printer.
             if (ret != WisePosErrorCode.ERR_SUCCESS) {
-                Log.e(TAG, "initPrinter failed $ret")
-                return
+                throw Exception("initPrinter failed $ret")
             }
             ret = printer.setGrayLevel(2) //Set the printer gray value.
             if (ret != WisePosErrorCode.ERR_SUCCESS) {
-                Log.e(TAG, "setGrayLevel failed $ret")
-                return
+                throw Exception("setGrayLevel failed $ret")
             }
             //Gets the current status of the printer
-            val map: Map<String?, Any?>? =
-                printer.printerStatus
-            if (map == null) {
-                Log.e(TAG, "getStatus failed")
-                return
-            }
+            val map: MutableMap<String, Any> =
+                printer.printerStatus ?: throw Exception("GetStatus failed")
             //Gets whether the printer is out of paper from the map file.
             if ((map["paper"].toString().toInt()) == 1) {
-                Log.e(TAG, "IsHavePaper = false\n")
-                return
+                throw Exception("IsHavePaper = False")
             } else {
                 Log.e(TAG, "IsHavePaper = true\n")
             }
@@ -80,10 +73,8 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
             printer.addSingleText(textInfo)
             textInfo.setText("Payment Time:17/3/29 9:27")
             printer.addSingleText(textInfo)
-            //  textInfo.setAlign(PRINT_STYLE_CENTER)
             textInfo.setText("--------------------------------------------")
             printer.addSingleText(textInfo)
-            //  textInfo.setAlign(PRINT_STYLE_LEFT)
             textInfo.setText("NO. of Coupons:5")
             printer.addSingleText(textInfo)
             textInfo.setText("Total Amount:$450")
@@ -98,7 +89,7 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
                 }
 
                 override fun onFinish() {
-                    Log.e(TAG, "print success\n")
+                    Log.e(TAG, "print success")
                     try {
                         //After printing, Feed the paper.
                         printer.feedPaper(30)
@@ -112,8 +103,8 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
                 }
             })
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e(TAG, "print failed$e\n")
+            Log.e(TAG, "print failed: $e")
+            throw FlutterError("Failed", e.toString())
         }
     }
 
@@ -167,8 +158,14 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
         return printer.printerStatus
     }
 
-    override fun setGrayLevel(level: Long): Long {
-        return printer.setGrayLevel(level.toInt()).toLong()
+    override fun setGrayLevel(level: Long) {
+        val result = printer.setGrayLevel(level.toInt())
+        if (result != WisePosErrorCode.ERR_SUCCESS) {
+            throw FlutterError(
+                result.toString(),
+                "Failed to SetGrayLevel: $result"
+            )
+        }
     }
 
     override fun setPrintFont(data: Map<String, Any>) {
@@ -190,7 +187,7 @@ class WisePosPrinter(private val printer: Printer) : WisePosPrinterChannel {
         info.fontSize = fontSize.toInt()
         info.width = width.toInt()
         info.columnSpacing = columnSpacing.toInt()
-        info.align = align.toInt()
+        info.align = align.toNative()
         info.setBold(isBold)
         info.setItalic(isItalic)
         info.setWithUnderline(isWithUnderline)

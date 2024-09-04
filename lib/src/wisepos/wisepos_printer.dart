@@ -1,6 +1,6 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:wiseasy_sdk/src/generated/wiseasy_sdk.g.dart';
+import 'package:wiseasy_sdk/src/models/text_info.dart';
 
 class WisePosPrinter {
   WisePosPrinter._();
@@ -13,33 +13,55 @@ class WisePosPrinter {
 
   Future<void> printSample() => _channel.printSample();
 
-  Future<void> addSingleText(PrinterTextInfo textInfo) =>
-      _channel.addSingleText(textInfo);
+  Future<void> addSingleText(TextInfo textInfo) =>
+      _channel.addSingleText(textInfo.toPrinterTextInfo());
 
   Future<void> addMultiText(List<PrinterTextInfo> textInfoList) =>
       _channel.addMultiText(textInfoList);
 
-  Future<void> addPicture(PrinterAlign align, Uint8List image) =>
-      _channel.addPicture(align, image);
+  Future<void> addAsset({
+    required String asset,
+    PrinterAlign align = PrinterAlign.center,
+  }) async {
+    ByteData image = await rootBundle.load(asset);
+    return addPicture(image: image.buffer.asUint8List(), align: align);
+  }
 
-  Future<void> addBarCode(
-          BarcodeType type, int width, int height, String barcode) =>
-      _channel.addBarCode(type, width, height, barcode);
+  Future<void> addPicture({
+    required Uint8List image,
+    PrinterAlign align = PrinterAlign.center,
+  }) {
+    return _channel.addPicture(align, image);
+  }
 
-  Future<void> addQrCode(int width, int height, String qrCode) =>
-      _channel.addQrCode(width, height, qrCode);
+  Future<void> addBarCode({
+    required String barcode,
+    BarcodeType type = BarcodeType.barcode_128,
+    int width = 100,
+    int height = 100,
+  }) {
+    return _channel.addBarCode(type, width, height, barcode);
+  }
+
+  Future<void> addQrCode({
+    required String qrCode,
+    int width = 100,
+    int height = 100,
+  }) {
+    return _channel.addQrCode(width, height, qrCode);
+  }
 
   Future<void> setLineSpacing(int spacing) => _channel.setLineSpacing(spacing);
 
   Future<void> feedPaper(int dots) => _channel.feedPaper(dots);
 
-  Future<void> startPrinting(Map<String, Object> options) =>
+  Future<void> startPrinting({Map<String, Object> options = const {}}) =>
       _channel.startPrinting(options);
 
   Future<Map<String, Object>> getPrinterStatus() async =>
       Map<String, Object>.from(await _channel.getPrinterStatus());
 
-  Future<int> setGrayLevel(int level) => _channel.setGrayLevel(level);
+  Future<void> setGrayLevel(int level) => _channel.setGrayLevel(level);
 
   Future<void> setPrintFont(Map<String, Object> data) =>
       _channel.setPrintFont(data);

@@ -42,7 +42,7 @@ class PrinterTextInfo {
 
   String text;
 
-  int align;
+  PrinterAlign align;
 
   int fontSize;
 
@@ -76,7 +76,7 @@ class PrinterTextInfo {
     result as List<Object?>;
     return PrinterTextInfo(
       text: result[0]! as String,
-      align: result[1]! as int,
+      align: result[1]! as PrinterAlign,
       fontSize: result[2]! as int,
       width: result[3]! as int,
       columnSpacing: result[4]! as int,
@@ -424,7 +424,7 @@ class WisePosPrinterChannel {
     }
   }
 
-  Future<int> setGrayLevel(int level) async {
+  Future<void> setGrayLevel(int level) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.wiseasy_sdk.WisePosPrinterChannel.setGrayLevel$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -441,13 +441,8 @@ class WisePosPrinterChannel {
         message: pigeonVar_replyList[1] as String?,
         details: pigeonVar_replyList[2],
       );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
     } else {
-      return (pigeonVar_replyList[0] as int?)!;
+      return;
     }
   }
 

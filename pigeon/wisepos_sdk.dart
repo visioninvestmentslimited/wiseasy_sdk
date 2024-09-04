@@ -43,7 +43,7 @@ abstract class WisePosPrinterChannel {
 
   Map<String, Object> getPrinterStatus();
 
-  int setGrayLevel(int level);
+  void setGrayLevel(int level);
 
   void setPrintFont(Map<String, Object> data);
 
@@ -64,17 +64,9 @@ abstract class WisePosDeviceChannel {
   String getDeviceSn();
 }
 
-enum PrinterAlign { left, center, right }
-
-enum BarcodeType {
-  barcode_128,
-  pdf_417,
-  barcode_39,
-}
-
 class PrinterTextInfo {
   String text;
-  int align;
+  PrinterAlign align;
   int fontSize;
   int width;
   int columnSpacing;
@@ -85,13 +77,25 @@ class PrinterTextInfo {
 
   PrinterTextInfo({
     required this.text,
-    this.align = 1,
-    this.fontSize = 24,
-    this.width = -1,
-    this.columnSpacing = -1,
-    this.isBold = false,
-    this.isItalic = false,
-    this.isWithUnderline = false,
-    this.isReverseText = false,
+    required this.align,
+    required this.fontSize,
+    required this.width,
+    required this.columnSpacing,
+    required this.isBold,
+    required this.isItalic,
+    required this.isWithUnderline,
+    required this.isReverseText,
   });
+}
+
+enum PrinterAlign {
+  left,
+  center,
+  right,
+}
+
+enum BarcodeType {
+  barcode_128,
+  pdf_417,
+  barcode_39,
 }
