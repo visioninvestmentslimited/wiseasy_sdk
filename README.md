@@ -6,26 +6,38 @@ Unofficial Flutter plugin to communicate with Wiseasy devices
 
 ## Getting Started
 
-Download the current [Wiseasy SDK](https://wiseasygroup.feishu.cn/wiki/QACTwUFeLi09vTk059icNb5cn3g). Here you need the `WiseSdk_**.aar` files.
+1. **Download the Wiseasy SDK:**
 
-After you are all setup you need to add the SDKs `\*.aar`` file to your Android Project as Module.
+   - Access the latest Wiseasy SDK from the [Wiseasy SDK Download Page](https://wiseasygroup.feishu.cn/wiki/QACTwUFeLi09vTk059icNb5cn3g).
+   - Download the `WiseSdk_**.aar` files that are required for your project.
 
-1. Open the android folder of your flutter project
-2. In the android root folder create a single folder for `WiseSdk`, place the corresponding aar file and create an empty `build.gradle` file
-3. Content of the `WiseSdk/build.gradle` file:
+2. **Organize the SDK in Your Project:**
 
-```groovy
-configurations.maybeCreate("default")
-artifacts.add("default", file('WiseSdk_D_XXXX.aar'))
-artifacts.add("default", file('WiseSdk_P_XXXX.aar'))
-```
+   - Navigate to the `android` directory of your Flutter project.
+   - Create a new folder named `WiseSdk` within the `android` directory.
+   - Place the downloaded `.aar` files (e.g., `WiseSdk_D_XXXX.aar`, `WiseSdk_P_XXXX.aar`) into the `WiseSdk` folder.
 
-4. In the android root folder find `settings.gradle` file, open it and add the following line at the top of the file:
+3. **Create a `build.gradle` File for the SDK:**
 
-```groovy
-include ":app"
-include ':WiseSdk' // Add this
-```
+   - Inside the `WiseSdk` folder, create a new `build.gradle` file with the following content:
+
+   ```groovy
+   configurations.maybeCreate("default")
+   artifacts.add("default", file('WiseSdk_D_XXXX.aar'))
+   artifacts.add("default", file('WiseSdk_P_XXXX.aar'))
+   ```
+
+   Note: Replace WiseSdk_D_XXXX.aar and WiseSdk_P_XXXX.aar with the actual filenames of the .aar files you downloaded.
+
+4. **Update settings.gradle to Include the SDK:**
+
+   - In the android directory, locate the settings.gradle file.
+   - Open it and add the following line to include the WiseSdk module:
+
+   ```groovy
+   include ":app"
+   include ':WiseSdk'
+   ```
 
 ## Usage
 
